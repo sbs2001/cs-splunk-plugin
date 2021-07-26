@@ -17,10 +17,9 @@ import (
 )
 
 type PluginConfig struct {
-	Name      string `yaml:"name"`
-	Endpoint  string `yaml:"endpoint"`
-	Token     string `yaml:"token"`
-	EventName string `yaml:"event_name"`
+	Name     string `yaml:"name"`
+	Endpoint string `yaml:"endpoint"`
+	Token    string `yaml:"token"`
 }
 
 type Splunk struct {
@@ -33,7 +32,11 @@ type Payload struct {
 }
 
 func (s *Splunk) Notify(ctx context.Context, notification *Notification) (*Empty, error) {
-	log.Info("received signal")
+	log.Infof("received notify signal for %s config", notification.Name)
+	if _, ok := s.PluginConfigByName[notification.Name]; !ok {
+		return &Empty{}, fmt.Errorf("splunk invalid config name %s", notification.Name)
+	}
+
 	cfg := s.PluginConfigByName[notification.Name]
 	p := Payload{Event: notification.Text}
 	data, err := json.Marshal(p)
